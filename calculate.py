@@ -134,17 +134,128 @@ def _quantize(activations: torch.FloatTensor) -> np.ndarray:
 
 
 #import all mine.utils
-#from mine.models.gan import GAN
+
 #from mine.models.laters import ConcatLayer, CustomSequential
 
 #from mine.models.mine.py
 class EMALoss(torch.autograd.Function):
+    @staticmethod
+    def forward(ctx, input, running_ema):
+        ctx.save_for_backward(input, running_ema)
+        input_log_sum_exp = input.exp().mean().log()
+
+        return input_log_sum_exp
+
+    @staticmethod
+    def backward(ctx, grad_output):
+        input, running_mean = ctx.saved_tensors
+        grad = grad_output * input.exp().detach() / \
+            (running_mean + EPS) / input.shape[0]
+        return grad, None
+
+#from mine.models.mine.py
+def ema(mu, alpha, past_ema):
+    return alpha * mu + (1.0 - alpha) * past_ema
+
+#from mine.models.mine.py
+def ema_loss(x, running_mean, alpha):
+    t_exp = torch.exp(torch.logsumexp(x, 0) - math.log(x.shape[0])).detach()
+    if running_mean == 0:
+        running_mean = t_exp
+    else:
+        running_mean = ema(t_exp, alpha, running_mean.item())
+    t_log = EMALoss.apply(x, running_mean)
+    # Recalculate ema
+    return t_log, running_mean
 
 #from mine.models.mine.py
 class T(nn.Module):
+    def __init__(self, x_dim, z_dim):
+        super().__init__()
+        self.layers = CustomSequential(ConcatLayer(), nn.Linear(x_dim + z_dim, 400), nn.ReLU(), nn.Linear(400, 400), nn.ReLU(), nn.Linear(400, 400), nn.ReLU(), nn.Linear(400, 1))
+
+    def forward(self, x, z):
+        return self.layers(x, z)
 
 #from mine.models.mine.py
 class MutualInformationEstimator(pl.LightningModule):
+    def __init__(self, x_dim, z_dim, loss='mine', **kwargs):
+        super().__init__()
+        self.x_dim = x_dim
+        self.T = CustomSequential(ConcatLayer(), nn.Linear(x_dim + z_dim, 100), nn.ReLU(),
+                                  nn.Linear(100, 100), nn.ReLU(), nn.Linear(100, 1))
+
+        self.energy_loss = Mine(self.T, loss=loss, alpha=kwargs['alpha'])
+
+        self.kwargs = kwargs
+
+        self.train_loader = kwargs.get('train_loader')
+        self.test_loader = kwargs.get('test_loader')
+
+    def forward(self, x, z):
+        if self.on_gpu:
+            x = x.cuda()
+            z = z.cuda()
+
+        return self.energy_loss(x, z)
+
+    def configure_optimizers(self):
+        return torch.optim.Adam(self.parameters(), lr=self.kwargs['lr'])
+
+    def training_step(self, batch, batch_idx):
+
+        x, z = batch
+
+        if self.on_gpu:
+            x = x.cuda()
+            z = z.cuda()
+
+        loss = self.energy_loss(x, z)
+        mi = -loss
+        tensorboard_logs = {'loss': loss, 'mi': mi}
+        tqdm_dict = {'loss_tqdm': loss, 'mi': mi}
+
+        return {
+            **tensorboard_logs, 'log': tensorboard_logs, 'progress_bar': tqdm_dict
+        }
+
+    def test_step(self, batch, batch_idx):
+        x, z = batch
+        loss = self.energy_loss(x, z)
+
+        return {
+            'test_loss': loss, 'test_mi': -loss
+        }
+
+    def test_end(self, outputs):
+        avg_mi = torch.stack([x['test_mi']
+                              for x in outputs]).mean().detach().cpu().numpy()
+        tensorboard_logs = {'test_mi': avg_mi}
+
+        self.avg_test_mi = avg_mi
+        return {'avg_test_mi': avg_mi, 'log': tensorboard_logs}
+
+    @pl.data_loader
+    def train_dataloader(self):
+        if self.train_loader:
+            return self.train_loader
+
+        train_loader = torch.utils.data.DataLoader(
+            FunctionDataset(self.kwargs['N'], self.x_dim,
+                            self.kwargs['sigma'], self.kwargs['f']),
+            batch_size=self.kwargs['batch_size'], shuffle=True)
+        return train_loader
+
+    @pl.data_loader
+    def test_dataloader(self):
+        if self.test_loader:
+            return self.train_loader
+
+        test_loader = torch.utils.data.DataLoader(
+            FunctionDataset(self.kwargs['N'], self.x_dim,
+                            self.kwargs['sigma'], self.kwargs['f']),
+            batch_size=self.kwargs['batch_size'], shuffle=True)
+        return test_loader
 
 #from mine.models.mine.py
 class Mine(nn.Module):
