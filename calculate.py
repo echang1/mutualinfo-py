@@ -1,9 +1,16 @@
 import faiss
 import sys
+import math
+import torch
+import torch.nn as nn
+from torch.distributions import Multivariate Normal
+from torch.autograd import Variable
 import numpy as np
 import numpy.linalg as la
 import torch.nn as nn
 import matplotlib.pyplot as plt
+import pytorch_lightning as pl
+from pytorch_lightning import Trainer
 from numpy import log
 from pyitlib import discrete_random_variable as drv
 from bisect import bisect
@@ -20,11 +27,11 @@ from mine.models.mine import MutualInformationEstimator
 
 #from entropy_estimators.py // called mi()
 def kraskov(x, y, z=None, k=3, base=2, alpha=0):
-    assert len(x) == len(y),
-    assert k <= len(x) - 1,
+    assert len(x) == len(y)
+    assert k <= len(x) - 1
     
     x, y, = np.asarray(x), np.asarray(y)
-    x, y = x.reshape(x.shape[0], -1), y.reshape[0], -1)
+    x, y = x.reshape(x.shape[0], -1), y.reshape(y.shape[0], -1)
     x = add_noise(x)
     y = add_noise(y)
     points = [x, y]
@@ -124,3 +131,82 @@ def _quantize(activations: torch.FloatTensor) -> np.ndarray:
     model = cluster.MiniBatchKMeans(n_clusters=n_bins, batch_size=100)
     labels = model.fit_predict(activations)
     return labels
+
+
+#import all mine.utils
+#from mine.models.gan import GAN
+#from mine.models.laters import ConcatLayer, CustomSequential
+
+#from mine.models.mine.py
+class EMALoss(torch.autograd.Function):
+
+#from mine.models.mine.py
+class T(nn.Module):
+
+#from mine.models.mine.py
+class MutualInformationEstimator(pl.LightningModule):
+
+#from mine.models.mine.py
+class Mine(nn.Module):
+    def __init__(self, T, loss='mine', alpha=0.01, method=None):
+        super().__init__()
+        self.running_mean = 0
+        self.loss = loss
+        self.alpha = alpha
+        self.method = method
+
+        if method == 'concat':
+            if isinstance(T, nn.Sequential):
+                self.T = CustomSequential(ConcatLayer(), *T)
+            else:
+                self.T = CustomSequential(ConcatLayer(), T)
+        else:
+            self.T = T
+
+    def forward(self, x, z, z_marg=None):
+        if z_marg is None:
+            z_marg = z[torch.randperm(x.shape[0])]
+
+        t = self.T(x, z).mean()
+        t_marg = self.T(x, z_marg)
+
+        if self.loss in ['mine']:
+            second_term, self.running_mean = ema_loss(t_marg, self.running_mean, self.alpha)
+        elif self.loss in ['fdiv']:
+            second_term = torch.exp(t_marg - 1).mean()
+        elif self.loss in['mine_biased']:
+            second_term = torch.logsumexp(t_marg, 0) - math.log(t_marg.shape[0])
+
+        return -t + second_term
+
+    def mi(self, x, z, z_marg=None):
+        if isinstance(x, np.ndarray):
+            x = torch.from_numpy(x).float()
+        if isinstance(z, np.ndarray):
+            z = torch.from_numpy(z).float()
+
+        with torch.no_grad():
+            mi = -self.forward(x, z, z_marg)
+        return mi
+
+    def optimize(self, X, Y, iters, batch_size, opt=None):
+
+        if opt is None:
+            opt = torch.optim.Adam(self.parameters(), le=1e-4)
+           
+        for iter in range(1, iters + 1):
+            m_mi = 0
+            for x, y in utils.batch(X, Y, batch_size):
+                opt.zero_grad()
+                loss = self.forward(x, y)
+                loss.backward()
+                opt.step()
+                mu_mi -= loss.item()
+            if iter % (iters // 3) == 0:
+                pass
+        final_mi = self.mi(X, Y)
+        print(f"Final MI: {final_mi}")
+        return final_mi
+
+
+

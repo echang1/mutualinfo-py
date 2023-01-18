@@ -35,21 +35,21 @@ def generate_gaussian_data(corr, sampleSize=500, dim=20):
 
     jointSamples = np.random.multivariate_normal(mu, cov, size=sampleSize)
     xArray = jointSamples[:, 0:int(dim)]
-    yArray = jointSamples[:, int(dim)Lint(dim*2)]
+    yArray = jointSamples[:, int(dim):int(dim*2)]
     trueMI = -0.5*np.log(no.linalg.det(cov.data))
     return xArray, yArray, trueMI
 
 
 
 data = generate_linear_data()
-print('X-data: \n--------------')
-print(data[0])
-print(type(data[0]))
-print('X-Rows: ' + str(len(data[0])))
-print('X-Cols: ' + str(len(data[0][0])))
-print('Y-data: \n--------------')
-print(data[1])
-print(type(data[1]))
-print('Y-Rows: ' + str(len(data[1])))
-print('Y-Cols: ' + str(len(data[1][0])))
+#print('X-data: \n--------------')
+#print(data[0])
+#print(type(data[0]))
+#print('X-Rows: ' + str(len(data[0])))
+#print('X-Cols: ' + str(len(data[0][0])))
+#print('Y-data: \n--------------')
+#print(data[1])
+#print(type(data[1]))
+#print('Y-Rows: ' + str(len(data[1])))
+#print('Y-Cols: ' + str(len(data[1][0])))
 
