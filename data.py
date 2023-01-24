@@ -1,7 +1,6 @@
 import numpy as np
 
 #from mutual_infomation_data.py
-
 def generate_linear_data(N=100, stdN=2, stdX=10, dimX=2, dimY=3):
     W = np.random.rand(dimY,dimX)
     for i in range(dimY):
@@ -25,6 +24,7 @@ def generate_linear_data(N=100, stdN=2, stdX=10, dimX=2, dimY=3):
 
     return xArray, yArray
 
+#from mutual_infomation_data.py
 def generate_gaussian_data(corr, sampleSize=500, dim=20):
     mu = np.zeros(dim*2)
     cov = torch.zeros((2*dim, 2*dim))
@@ -41,7 +41,7 @@ def generate_gaussian_data(corr, sampleSize=500, dim=20):
 
 
 
-data = generate_linear_data()
+#data = generate_linear_data()
 #print('X-data: \n--------------')
 #print(data[0])
 #print(type(data[0]))
