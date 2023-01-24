@@ -1,4 +1,5 @@
 import numpy as np
+import torch
 
 #from mutual_infomation_data.py
 def generate_linear_data(N=100, stdN=2, stdX=10, dimX=2, dimY=3):
@@ -36,7 +37,7 @@ def generate_gaussian_data(corr, sampleSize=500, dim=20):
     jointSamples = np.random.multivariate_normal(mu, cov, size=sampleSize)
     xArray = jointSamples[:, 0:int(dim)]
     yArray = jointSamples[:, int(dim):int(dim*2)]
-    trueMI = -0.5*np.log(no.linalg.det(cov.data))
+    trueMI = -0.5*np.log(np.linalg.det(cov.data))
     return xArray, yArray, trueMI
 
 

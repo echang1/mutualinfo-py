@@ -11,18 +11,28 @@ import torch.nn as nn
 import matplotlib.pyplot as plt
 import pytorch_lightning as pl
 from pytorch_lightning import Trainer
-#from pyitlib import discrete_random_variable as drv
 from bisect import bisect
 from scipy.special import digamma
 from sklearn.neighbors import BallTree, KDTree
-#from mighty.monitor.mutual_info.npeet import *
-#from mighty.monitor.mutual_info.kmeans import *
-#from mine.models.mine import Mine
-#from mine.models.mine import MutualInformationEstimator
+from sklearn import cluster
 import utils
-#----
-#CORRECTION FUNCTIONS
-#----
+
+
+#from mighty.monitor.mutual_info.mutual_info.py
+def to_bits(entropy_nats):
+    """
+        Converts nats to bits.
+        Parameters
+        ----------
+        entropy_nats : float
+            Entropy in nats.
+        Returns
+        -------
+        float
+            Entropy in bits.
+        """
+    log2e = math.log2(math.e)
+    return entropy_nats * log2e
 
 #from entropy_estimators.py
 def lnc_correction(tree, points, k, alpha):
@@ -45,10 +55,6 @@ def lnc_correction(tree, points, k, alpha):
         if V_rect < log_knn_dist + np.log(alpha):
             e += (log_knn_dist - V_rect) / n_sample
     return e
-
-#----
-#UTILITY FUNCTIONS
-#----
 
 #from entropy_estimators.py
 def add_noise(x, intens=1e-10):
@@ -84,10 +90,24 @@ def _quantize(activations: torch.FloatTensor, n_bins=10) -> np.ndarray:
     labels = model.fit_predict(activations)
     return labels
 
+#from mine.models.layers 
+class ConcatLayer(nn.Module):
+    def __init__(self, dim=1):
+        super().__init__()
+        self.dim = dim
 
-#import all mine.utils
+    def forward(self, x, y):
+        return torch.cat((x, y), self.dim)
 
-#from mine.models.laters import ConcatLayer, CustomSequential
+#from mine.models.layers 
+class CustomSequential(nn.Sequential):
+    def forward(self, *input):
+        for module in self._modules.values():
+            if isinstance(input, tuple):
+                input = module(*input)
+            else:
+                input = module(input)
+        return input
 
 #from mine.models.mine.py
 class EMALoss(torch.autograd.Function):
@@ -187,7 +207,7 @@ class MutualInformationEstimator(pl.LightningModule):
         self.avg_test_mi = avg_mi
         return {'avg_test_mi': avg_mi, 'log': tensorboard_logs}
 
-    @pl.data_loader
+    #@pl.data_loader
     def train_dataloader(self):
         if self.train_loader:
             return self.train_loader
@@ -198,7 +218,7 @@ class MutualInformationEstimator(pl.LightningModule):
             batch_size=self.kwargs['batch_size'], shuffle=True)
         return train_loader
 
-    @pl.data_loader
+    #@pl.data_loader
     def test_dataloader(self):
         if self.test_loader:
             return self.train_loader
@@ -255,11 +275,11 @@ class Mine(nn.Module):
     def optimize(self, X, Y, iters, batch_size, opt=None):
 
         if opt is None:
-            opt = torch.optim.Adam(self.parameters(), le=1e-4)
+            opt = torch.optim.Adam(self.parameters(), lr=1e-4)
            
         for iter in range(1, iters + 1):
             m_mi = 0
-            for x, y in utils.batch(X, Y, batch_size):
+            for x, y in batch(X, Y, batch_size):
                 opt.zero_grad()
                 loss = self.forward(x, y)
                 loss.backward()
@@ -270,3 +290,27 @@ class Mine(nn.Module):
         final_mi = self.mi(X, Y)
         print(f"Final MI: {final_mi}")
         return final_mi
+    
+#from mine.utils
+def batch(x, y, batch_size=1, shuffle=True):
+    assert len(x) == len(
+        y), "Input and target data must contain same number of elements"
+    if isinstance(x, np.ndarray):
+        x = torch.from_numpy(x).float()
+    if isinstance(y, np.ndarray):
+        y = torch.from_numpy(y).float()
+
+    n = len(x)
+
+    if shuffle:
+        rand_perm = torch.randperm(n)
+        x = x[rand_perm]
+        y = y[rand_perm]
+
+    batches = []
+    for i in range(n // batch_size):
+        x_b = x[i * batch_size: (i + 1) * batch_size]
+        y_b = y[i * batch_size: (i + 1) * batch_size]
+
+        batches.append((x_b, y_b))
+    return batches
