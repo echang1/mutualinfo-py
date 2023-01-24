@@ -2,7 +2,7 @@ import numpy as np
 import torch
 
 #from mutual_infomation_data.py
-def generate_linear_data(N=100, stdN=2, stdX=10, dimX=2, dimY=3):
+def generate_linear_data(stdN, n_bins, N=500, stdX=10, dimX=2, dimY=3):
     W = np.random.rand(dimY,dimX)
     for i in range(dimY):
         for j in range(dimX):

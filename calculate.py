@@ -49,11 +49,11 @@ def kmeans(x, y) -> float:
     return utils.to_bits(mutual_info_score(xKmeans, yKmeans)) #pytorch-mighty/monitor/mutual_info.py 
 
 #fro Linear_Function.py
-def mine(x, y, fsize=100):
-    dimX, dimY = len(x), len(y)
+def mine(x, y, fsize=100, batch_size=100):
+    dimX, dimY = len(x[0]), len(y[0])
     statistics_network = nn.Sequential(nn.Linear(dimX+dimY, fsize), nn.ReLU(), nn.Linear(fsize, fsize), nn.ReLU(), nn.Linear(fsize, fsize), nn.ReLU(), nn.Linear(fsize, 1))
-    mine = utils.Mine(T = statistics_network, loss = 'fdiv', method = 'concat')
-    return mine.optimize(x, y, batch_size=100, iters=100)
+    mine = utils.Mine(T=statistics_network, loss = 'fdiv', method = 'concat')
+    return mine.optimize(x, y, batch_size=batch_size, iters=100)
 
 
 

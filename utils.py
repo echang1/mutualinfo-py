@@ -277,7 +277,7 @@ class Mine(nn.Module):
             opt = torch.optim.Adam(self.parameters(), lr=1e-4)
            
         for iter in range(1, iters + 1):
-            m_mi = 0
+            mu_mi = 0
             for x, y in batch(X, Y, batch_size):
                 opt.zero_grad()
                 loss = self.forward(x, y)
@@ -287,8 +287,7 @@ class Mine(nn.Module):
             if iter % (iters // 3) == 0:
                 pass
         final_mi = self.mi(X, Y)
-        print(f"Final MI: {final_mi}")
-        return final_mi
+        return final_mi.item()
     
 #from mine.utils.helpers.py
 def batch(x, y, batch_size=1, shuffle=True):
