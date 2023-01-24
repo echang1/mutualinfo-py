@@ -1,3 +1,25 @@
+import faiss
+import sys
+import math
+import torch
+import torch.nn as nn
+from torch.distributions import MultivariateNormal
+from torch.autograd import Variable
+import numpy as np
+import numpy.linalg as la
+import torch.nn as nn
+import matplotlib.pyplot as plt
+import pytorch_lightning as pl
+from pytorch_lightning import Trainer
+#from pyitlib import discrete_random_variable as drv
+from bisect import bisect
+from scipy.special import digamma
+from sklearn.neighbors import BallTree, KDTree
+#from mighty.monitor.mutual_info.npeet import *
+#from mighty.monitor.mutual_info.kmeans import *
+#from mine.models.mine import Mine
+#from mine.models.mine import MutualInformationEstimator
+import utils
 #----
 #CORRECTION FUNCTIONS
 #----
@@ -57,8 +79,7 @@ def build_tree(points):
     return KDTree(points, metric='chebyshev')
 
 #from Linear_Function.py
-def _quantize(activations: torch.FloatTensor) -> np.ndarray:
-    n_bins = 10
+def _quantize(activations: torch.FloatTensor, n_bins=10) -> np.ndarray:
     model = cluster.MiniBatchKMeans(n_clusters=n_bins, batch_size=100)
     labels = model.fit_predict(activations)
     return labels

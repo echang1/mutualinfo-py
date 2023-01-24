@@ -1,25 +1,6 @@
-import faiss
-import sys
-import math
-import torch
-import torch.nn as nn
-from torch.distributions import MultivariateNormal
-from torch.autograd import Variable
 import numpy as np
-import numpy.linalg as la
 import torch.nn as nn
-import matplotlib.pyplot as plt
-import pytorch_lightning as pl
-from pytorch_lightning import Trainer
-from numpy import log
-from pyitlib import discrete_random_variable as drv
-from bisect import bisect
 from scipy.special import digamma
-from sklearn.neighbors import BallTree, KDTree
-from mighty.monitor.mutual_info.npeet import *
-from mighty.monitor.mutual_info.kmeans import *
-#from mine.models.mine import Mine
-#from mine.models.mine import MutualInformationEstimator
 
 #----
 #ESTIMATORS
@@ -56,14 +37,14 @@ def kraskov(x, y, z=None, k=3, base=2, alpha=0):
         xz = np.c_[x, z]
         yz = np.c_[y, z]
         a, b, c, d = avgdigamma(xz, dvec), avgdigamma(yz, dvec), avgdigamma(z, dvec), digamma(k)    
-    return (-a - b + c + d) / log(base)
+    return (-a - b + c + d) / np.log(base)
 
 #from Linear_Function.py
 def kmeans(x, y) -> float:
     #create quantized data for kmeans
     xKmeans = _quantize(x)
-    ykMeans = _quantize(y)
-    return MutualInfo.to_bits(mutual_info_score(xKmeans, yKmeans))
+    yKmeans = _quantize(y)
+    return MutualInfo.to_bits(mutual_info_score(xKmeans, yKmeans)) #pytorch-mighty/monitor/mutual_info.py 
 
 def mine(x, y, fsize=100):
     dimX, dimY = len(x), len(y)
