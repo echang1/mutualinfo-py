@@ -15,7 +15,6 @@ from bisect import bisect
 from scipy.special import digamma
 from sklearn.neighbors import BallTree, KDTree
 from sklearn import cluster
-import utils
 
 
 #from mighty.monitor.mutual_info.mutual_info.py
@@ -71,7 +70,7 @@ def count_neighbors(tree, x, r):
 
 #from entropy_estimators.py
 def avgdigamma(points, dvec):
-    #This part finds the number of neighbors in some radius in the marginal space
+    #This part finds number of neighbors in some radius in the marginal space
     #returns expectation value of <psi(nx)>
     tree = build_tree(points)
     dvec = dvec - 1e-15
@@ -81,8 +80,8 @@ def avgdigamma(points, dvec):
 #from entropy_estimators.py
 def build_tree(points):
     if points.shape[1] >= 20:
-        return BallTree(points, metric='chebyshev')
-    return KDTree(points, metric='chebyshev')
+        return BallTree(points, metric="chebyshev")
+    return KDTree(points, metric="chebyshev")
 
 #from Linear_Function.py
 def _quantize(activations: torch.FloatTensor, n_bins=10) -> np.ndarray:
@@ -90,7 +89,7 @@ def _quantize(activations: torch.FloatTensor, n_bins=10) -> np.ndarray:
     labels = model.fit_predict(activations)
     return labels
 
-#from mine.models.layers 
+#from mine.models.layers.py
 class ConcatLayer(nn.Module):
     def __init__(self, dim=1):
         super().__init__()
@@ -99,7 +98,7 @@ class ConcatLayer(nn.Module):
     def forward(self, x, y):
         return torch.cat((x, y), self.dim)
 
-#from mine.models.layers 
+#from mine.models.layers.py 
 class CustomSequential(nn.Sequential):
     def forward(self, *input):
         for module in self._modules.values():
@@ -291,7 +290,7 @@ class Mine(nn.Module):
         print(f"Final MI: {final_mi}")
         return final_mi
     
-#from mine.utils
+#from mine.utils.helpers.py
 def batch(x, y, batch_size=1, shuffle=True):
     assert len(x) == len(
         y), "Input and target data must contain same number of elements"

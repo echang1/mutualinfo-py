@@ -17,7 +17,7 @@ def kraskov(x, y, z=None, k=3, base=2, alpha=0):
     assert len(x) == len(y) #Arrays should have same length
     assert k <= len(x) - 1  #Set k smaller than num. samples - 1
     
-    x, y, = np.asarray(x), np.asarray(y)
+    x, y = np.asarray(x), np.asarray(y)
     x, y = x.reshape(x.shape[0], -1), y.reshape(y.shape[0], -1)
     x = utils.add_noise(x)
     y = utils.add_noise(y)
@@ -32,7 +32,7 @@ def kraskov(x, y, z=None, k=3, base=2, alpha=0):
     tree = utils.build_tree(points)
     dvec = utils.query_neighbors(tree, points, k)
     if z is None:
-        a, b, c, d = utils.avgdigamma(x, dvec), utils.avgdigamma(y, dvec), utils.digamma(k), digamma(len(x))
+        a, b, c, d = utils.avgdigamma(x, dvec), utils.avgdigamma(y, dvec), digamma(k), digamma(len(x))
         if alpha > 0:
             d += utils.lnc_correction(tree, points, k, alpha)
     else:
@@ -48,6 +48,7 @@ def kmeans(x, y) -> float:
     yKmeans = utils._quantize(y)
     return utils.to_bits(mutual_info_score(xKmeans, yKmeans)) #pytorch-mighty/monitor/mutual_info.py 
 
+#fro Linear_Function.py
 def mine(x, y, fsize=100):
     dimX, dimY = len(x), len(y)
     statistics_network = nn.Sequential(nn.Linear(dimX+dimY, fsize), nn.ReLU(), nn.Linear(fsize, fsize), nn.ReLU(), nn.Linear(fsize, fsize), nn.ReLU(), nn.Linear(fsize, 1))
