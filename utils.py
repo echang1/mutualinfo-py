@@ -7,7 +7,6 @@ from torch.distributions import MultivariateNormal
 from torch.autograd import Variable
 import numpy as np
 import numpy.linalg as la
-import torch.nn as nn
 import matplotlib.pyplot as plt
 import pytorch_lightning as pl
 from pytorch_lightning import Trainer
@@ -15,7 +14,6 @@ from bisect import bisect
 from scipy.special import digamma
 from sklearn.neighbors import BallTree, KDTree
 from sklearn import cluster
-
 
 #from mighty.monitor.mutual_info.mutual_info.py
 def to_bits(entropy_nats):

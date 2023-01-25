@@ -4,11 +4,7 @@ from scipy.special import digamma
 from sklearn.metrics import mutual_info_score
 import utils
 
-#----
-#ESTIMATORS
-#----
-
-#from entropy_estimators.py // called mi()
+#from entropy_estimators.py
 def kraskov(x, y, z=None, k=3, base=2, alpha=0):
     """Mutual information on x and y (conditioned on z if z is not None)
        x, y should be lists of vectors, i.e. x = [[1.3], [3.7], [5.1], [2.4]]
