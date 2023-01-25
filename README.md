@@ -22,13 +22,9 @@ sklearn: 			        ```conda install -c anaconda scikit-learn```
 
 ### utils.py
 
-faiss-cpu:			        ```conda install -c pytorch faiss-cpu```
-
 pytorch:			        ```conda install -c pytorch pytorch```
 
 numpy:				        ```conda install -c anaconda numpy```
-
-matplotlib:			        ```conda install -c conda-forge matplotlib```
 
 pytorch_lightning:		    ```conda install -c conda-forge pytorch-lightning```
 
