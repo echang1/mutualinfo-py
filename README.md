@@ -37,9 +37,6 @@ mighty:				        ```pip install pytorch-mighty```
 
 ## Code from the following repos has also been used:
 
-
-https://github.com/xinxinju/wvu_independent_study/tree/main/mutual_information
-
 https://github.com/gregversteeg/NPEET
 
 https://github.com/gtegner/mine-pytorch
