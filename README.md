@@ -40,3 +40,5 @@ mighty:				        ```pip install pytorch-mighty```
 https://github.com/gregversteeg/NPEET
 
 https://github.com/gtegner/mine-pytorch
+
+https://github.com/zhuchen03/VIBNet.git
